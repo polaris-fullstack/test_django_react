@@ -63,7 +63,7 @@ const ContactsTable = ({ contacts, onContactUpdated }) => {
 
   const handleEditSubmit = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/contacts/${selectedContact.id}/`, {
+      const response = await fetch(`https://arvinjayromero.pythonanywhere.com/api/contacts/${selectedContact.id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ const ContactsTable = ({ contacts, onContactUpdated }) => {
 
   const handleDeleteSubmit = async () => {
     try {      
-      const response = await fetch(`http://localhost:8000/api/contacts/${selectedContact.id}/`, {
+      const response = await fetch(`https://arvinjayromero.pythonanywhere.com/api/contacts/${selectedContact.id}/`, {
         method: 'DELETE',
       });
 

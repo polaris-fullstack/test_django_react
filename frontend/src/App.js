@@ -24,7 +24,8 @@ function App() {
 
   const fetchContacts = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/contacts/');
+      // http://localhost:8000 (dev mode api)
+      const response = await fetch('https://arvinjayromero.pythonanywhere.com/api/contacts/');
       const data = await response.json();
       setContacts(data);
     } catch (error) {
