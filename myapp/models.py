@@ -4,14 +4,13 @@ from django.db import models
 
 PROPERTY_TYPE_CHOICES = [
     (0, 'Single Line Input'),
-    (1, 'Multi Line Input'),
-    (2, 'Checkbox'),
-    (3, 'Dropdown'),
-    (4, 'Radio'),
-    (5, 'Date'),
-    (6, 'Time'),
-    (7, 'Date and Time'),
-    (8, 'Number')
+    (1, 'Multi Line Input'),    
+    (2, 'Dropdown'),
+    (3, 'Radio'),
+    (4, 'Date'),
+    (5, 'Time'),
+    (6, 'Date and Time'),
+    (7, 'Number')
 ]
 
 class Item(models.Model):
@@ -47,6 +46,7 @@ class Property(models.Model):
     name = models.CharField(max_length=100)
     object = models.ForeignKey(Object, on_delete=models.CASCADE)
     type = models.IntegerField(choices=PROPERTY_TYPE_CHOICES)
+    type_extra = models.TextField(blank=True)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
