@@ -51,7 +51,7 @@ class ObjectViewSet(viewsets.ModelViewSet):
     
     def create_new_table(self, obj_name):
         with connection.cursor() as cursor:
-            cursor.execute(f"CREATE TABLE dynamic_{obj_name.lower()} (id SERIAL PRIMARY KEY)")
+            cursor.execute(f"CREATE TABLE dynamic_{obj_name.replace(" ", "_").lower()} (id INTEGER PRIMARY KEY AUTOINCREMENT)")
         return
 
 class PropertyViewSet(viewsets.ModelViewSet):
@@ -81,7 +81,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
     def create_new_column(self, object_id, col_name, type):
         col_type = "VARCHAR(255)"
         col_name_conv = col_name
-        col_name_conv = col_name_conv.strip().lower()
+        col_name_conv = col_name_conv.replace(" ", "_").lower()
         match type:
             case 0:
                 col_type = "VARCHAR(255)"
@@ -106,10 +106,55 @@ class PropertyViewSet(viewsets.ModelViewSet):
 
         try:
             with connection.cursor() as cursor:
-                cursor.execute(f"ALTER TABLE dynamic_{table_name.lower()} ADD COLUMN {col_name_conv} {col_type}")            
+                cursor.execute(f"ALTER TABLE dynamic_{table_name.replace(" ", "_").lower()} ADD COLUMN {col_name_conv} {col_type}")            
             return True
         except Exception as e:
             logging.error(f"Error creating new column {col_name_conv} with type {type}: {e}")
             return False
+
+class QueryViewSet(viewsets.ViewSet):
+    def create(self, request):
+        object_id = request.data.get('object', None)
+        data = request.data.get('data', None)
+        if not object_id or not data:
+            return Response({'error': 'Object and data are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        table_name = ""
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT name FROM myapp_object WHERE id = '{object_id}'")
+            table_name = cursor.fetchone()[0]
+
+        table_name = f"dynamic_{table_name.replace(" ", "_").lower()}"
+        columns = []
+        columns = list(data.keys())
+        values = []
+        for col in columns:
+            values.append(data[col])
+        query = f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({', '.join([f"'{data[col]}'" for col in columns])})"
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM {table_name}")
+            results = cursor.fetchall()
+        return Response({'message': 'Hello, world!', 'data': results}, status=status.HTTP_200_OK)
+        
+    def list(self, request):
+        object_id = request.query_params.get('object', None)
+        if not object_id:
+            return Response({'error': 'Object is required'}, status=status.HTTP_400_BAD_REQUEST)
+        table_name = ""
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM myapp_object WHERE id = '{object_id}'")
+            object = cursor.fetchone()
+            print(f"Object: {object}, object_id: {object_id}")
+            table_name = object[1]
+        table_name = f"dynamic_{table_name.replace(" ", "_").lower()}"
+        columns = []
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM {table_name}")
+            columns = [col[0] for col in cursor.description]
+            results = cursor.fetchall()
+
+        return Response({'columns': columns, 'results': results}, status=status.HTTP_200_OK)
         
 
